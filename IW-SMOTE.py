@@ -1,6 +1,6 @@
-# Aimin Zhang
+# author：Aimin Zhang，Hualong Yu
 # Time:2022/4/2
-
+# Institution：Jiangsu University of Science and Technology
 
 import numpy as np
 import pandas as pd
@@ -23,15 +23,15 @@ def CART(X, y, XX):
 
 class IW_SMOTE():
     def __init__(self, lamda=100,  thres=0.5, k_neighbor=5, divide_times=2, gen_times=1):
-        self.lamda = lamda;
-        self.thres = thres;
-        self.k_neighbor = k_neighbor;
-        self.divide_times = divide_times;
-        self.gen_times = gen_times;
+        self.lamda = lamda; #lamda*imbalance ratio = the number of cart
+        self.thres = thres; #The noise threshold
+        self.k_neighbor = k_neighbor; #k nearest neighbor
+        self.divide_times = divide_times; #thr ratio of under sampling minority samples
+        self.gen_times = gen_times; #The ratio of generated minority class to majority class samples
 
     def sample(self, data, target):
-        self.data = data
-        self.target = target
+        self.data = data #train data
+        self.target = target #train data label
         test = pd.DataFrame(self.data)
         test[len(test.columns)] = self.target
         x_x = test
@@ -41,13 +41,12 @@ class IW_SMOTE():
         m1, n1 = len(z), len(z.columns)
         m2, n2 = len(p), len(p.columns)
         IR = m2/m1#imbalance ratio
-        predict_min_labelset = pd.DataFrame(columns=range(int(IR * self.lamda)))
+        predict_min_labelset = pd.DataFrame(co lumns=range(int(IR * self.lamda)))
         predict_maj_labelset = pd.DataFrame(columns=range(int(IR * self.lamda)))
         #train under-bagging CART
         for i_1 in range(int(IR * self.lamda)):
             train_subset = z.sample(int(m1 / self.divide_times))
             train_subset = train_subset.append(p.sample(int(m1 / self.divide_times), replace=True))
-            # print(train_subset)
             predict_maj_labelset[i_1] = CART(np.array(train_subset.iloc[:, 0:n1 - 1]), np.array(train_subset[n1 - 1]),
                                              np.array(p.iloc[:, 0:n2 - 1]))
             predict_min_labelset[i_1] = CART(np.array(train_subset.iloc[:, 0:n1 - 1]), np.array(train_subset[n1 - 1]),
@@ -93,7 +92,7 @@ class IW_SMOTE():
         reserve_maj = pd.DataFrame(reserve_maj)
         err_rate_maj = pd.DataFrame(err_rate_maj)
 
-        # %%%%%%%%% generate the synthetic minority instances
+        # generate the synthetic minority instances
         weight = err_rate_min[0] / sum(err_rate_min[0])
         num_need_generate = self.gen_times * num_reserve_maj - num_reserve_min
         if num_need_generate == num_reserve_maj:
@@ -123,5 +122,5 @@ class IW_SMOTE():
             new_z = reserve_min.append(new_set)
             new_original_data = reserve_maj.append(new_z)
             new_original_data.index = range(len(new_original_data))
-            return np.array( new_original_data.iloc[:, 0:len(new_original_data.columns) - 1]), np.array(new_original_data[len(new_original_data.columns) - 1])
+            return np.array( new_original_data.iloc[:, 0:len(new_original_data.columns) - 1]), np.array(new_original_data[len(new_original_data.columns) - 1])#Returns an oversampled dataset
 
