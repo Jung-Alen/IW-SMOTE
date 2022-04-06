@@ -13,6 +13,7 @@ import pandas as pd
 import smote_variants as sv
 import scipy.io as io
 import random
+import CSELM as ce
 from sklearn.tree import DecisionTreeClassifier
 from sklearn.linear_model import LogisticRegression
 from sklearn.metrics import confusion_matrix
@@ -46,12 +47,12 @@ from sklearn.neighbors import KNeighborsClassifier
 
 class Compared_smote():
     def __init__(self, balance=1):
-        self.balance = balance;
+        self.balance = balance;#Sampling rate
 
 
     def smote(self, data, target):
-        self.data = data
-        self.target = target
+        self.data = data #train data
+        self.target = target #train label
         df = pd.DataFrame(self.data)
         df[len(df.columns)] = self.target
         oversampler = sv.SMOTE(proportion = self.balance)
@@ -147,6 +148,28 @@ class Compared_smote():
         X_samp, y_samp = oversampler.sample(np.array(df.iloc[:, 0:len(df.columns) - 1]),
                                             np.array(df[len(df.columns) - 1]))
         return X_samp, y_samp
+        
+        
+         def smote_cselm(self, data, target, test):
+        self.data = data
+        self.target = target
+        self.test = test
+        df = pd.DataFrame(self.data)
+        df[len(df.columns)] = self.target
+        x_x = df
+        m, n = len(x_x), len(x_x.columns)
+        z = x_x[x_x[n - 1] == 1]  # acquire the minority set
+        p = x_x[x_x[n - 1] == -1]  # acquire the majority set
+        oversampler = sv.SMOTE(proportion=self.balance)
+        X_samp, y_samp = oversampler.sample(np.array(df.iloc[:, 0:len(df.columns) - 1]),
+                                            np.array(df[len(df.columns) - 1]))
+        syn = pd.DataFrame(X_samp)
+        syn[len(syn.columns)] = y_samp
+        syn = pd.cancat([z,p,syn])
+        syn = syn.drop_duplicates(keep=False)
+        cse = ce.ELM(z.iloc[:,:n-1], z.iloc[:,:n-1], syn.iloc[:,:n-1], 100)
+        cse.classifisor_train(z[n-1].append(p[n-1]).append(syn[n-1]))
+        return  cse.classifisor_test(test)
 
     
 
