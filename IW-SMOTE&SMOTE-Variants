@@ -10,6 +10,7 @@ import smote_variants as sv
 import random
 import CSELM as ce
 from sklearn.tree import DecisionTreeClassifier
+import WKSMOTE as ws
 
 
 
@@ -22,8 +23,10 @@ def CART(X, y, XX):
 
 
 class Compared_smote():
-    def __init__(self, balance=1):
+    def __init__(self, data, target, balance=1):
         self.balance = balance;  # Sampling rate
+        self.data = data # The training set
+        self.target = target # The labels of training set
 
     """
             :param lamda: lamda*imbalance ratio = the number of cart
@@ -31,26 +34,22 @@ class Compared_smote():
             :param k_neighbor: k nearest neighbor
             :param divide_times: The ratio of under sampling minority samples
             :param gen_times: The ratio of generated minority class to majority class samples
-            :param data: The training set
-            :param target: The labels of training set
             :return: The synthetic samples, attributes and labels
     """
-    def IW_SMOTE(self, data, target, lamda=100, thres=0.5, k_neighbor=5, divide_times=2, gen_times=1):
+    def IW_SMOTE(self, lamda=100, thres=0.5, k_neighbor=5, divide_times=2, gen_times=1):
         self.lamda = lamda;
         self.thres = thres;
         self.k_neighbor = k_neighbor;
         self.divide_times = divide_times;
         self.gen_times = gen_times;
-        self.data = data
-        self.target = target
         # x_x:Temporary variable, save the training set
         x_x = pd.DataFrame(self.data)
         x_x[len(x_x.columns)] = self.target
         m, n = len(x_x), len(x_x.columns) #m: the number of trainning set; n: the number of columns of the trainning set
         z = x_x[x_x[n - 1] == 1]  # acquire the minority set
         p = x_x[x_x[n - 1] == -1]  # acquire the majority set
-        m1, n1 = len(z), len(z.columns) # m: the number of minority samples; n: the number of columns of the minority samples
-        m2, n2 = len(p), len(p.columns) # m: the number of majority samples; n: the number of columns of the majority samples
+        m1, n1 = len(z), len(z.columns) # m1: the number of minority samples; n1: the number of columns of the minority samples
+        m2, n2 = len(p), len(p.columns) # m2: the number of majority samples; n2: the number of columns of the majority samples
         IR = m2 / m1  # imbalance ratio
         predict_min_labelset = pd.DataFrame(columns = range(int(IR * self.lamda))) # the predicted labels of the minority samples
         predict_maj_labelset = pd.DataFrame(columns = range(int(IR * self.lamda))) # the predicted labels of the majority samples
@@ -122,8 +121,7 @@ class Compared_smote():
                 b = b[1:self.k_neighbor + 1] # choice knn
                 for j in range(int(nums)):
                     num_generate = num_generate + 1
-                    #random choice a sample from KNN
-                    s_b = random.choice(b) 
+                    s_b = random.choice(b)
                     select_ins = reserve_min.iloc[s_b[0], :]
                     new_ins = (reserve_min.iloc[i_4, :] - pd.DataFrame(select_ins).T) * random.random() + pd.DataFrame(
                         select_ins).T  # generate funtion
@@ -135,16 +133,12 @@ class Compared_smote():
             return np.array(new_original_data.iloc[:, 0:len(new_original_data.columns) - 1]), np.array(new_original_data[len(new_original_data.columns) - 1])
 
 
-    def SMOTE(self, data, target):
+    def SMOTE(self):
         """
-                    :data: The training set
-                    :target: The label of the training set
                     :return: The synthetic samples
                     :X_samp: The attribute of the synthetic samples
                     :y_samp: The labels of the synthetic samples
         """
-        self.data = data
-        self.target = target
         df = pd.DataFrame(self.data)
         df[len(df.columns)] = self.target
         oversampler = sv.SMOTE(proportion=self.balance)
@@ -152,16 +146,12 @@ class Compared_smote():
         return X_samp, y_samp
 
 
-    def B1_SMOTE(self, data, target):
+    def B1_SMOTE(self):
         """
-                            :data: The training set
-                            :target: The label of the training set
                             :return: The synthetic samples
                             :X_samp: The attribute of the synthetic samples
                             :y_samp: The labels of the synthetic samples
         """
-        self.data = data
-        self.target = target
         df = pd.DataFrame(self.data)
         df[len(df.columns)] = self.target
         oversampler = sv.Borderline_SMOTE1(proportion=self.balance)
@@ -169,16 +159,12 @@ class Compared_smote():
         return X_samp, y_samp
 
 
-    def B2_SMOTE(self, data, target):
+    def B2_SMOTE(self):
         """
-                            :data: The training set
-                            :target: The label of the training set
                             :return: The synthetic samples
                             :X_samp: The attribute of the synthetic samples
                             :y_samp: The labels of the synthetic samples
         """
-        self.data = data
-        self.target = target
         df = pd.DataFrame(self.data)
         df[len(df.columns)] = self.target
         oversampler = sv.Borderline_SMOTE2(proportion=self.balance)
@@ -186,16 +172,12 @@ class Compared_smote():
         return X_samp, y_samp
 
 
-    def SL_SMOTE(self, data, target):
+    def SL_SMOTE(self):
         """
-                            :data: The training set
-                            :target: The label of the training set
                             :return: The synthetic samples
                             :X_samp: The attribute of the synthetic samples
                             :y_samp: The labels of the synthetic samples
         """
-        self.data = data
-        self.target = target
         df = pd.DataFrame(self.data)
         df[len(df.columns)] = self.target
         oversampler = sv.Safe_Level_SMOTE(proportion=self.balance)
@@ -203,16 +185,12 @@ class Compared_smote():
         return X_samp, y_samp
 
 
-    def SN_SMOTE(self, data, target):
+    def SN_SMOTE(self):
         """
-                            :data: The training set
-                            :target: The label of the training set
                             :return: The synthetic samples
                             :X_samp: The attribute of the synthetic samples
                             :y_samp: The labels of the synthetic samples
         """
-        self.data = data
-        self.target = target
         df = pd.DataFrame(self.data)
         df[len(df.columns)] = self.target
         oversampler = sv.SN_SMOTE(proportion=self.balance)
@@ -220,16 +198,12 @@ class Compared_smote():
         return X_samp, y_samp
 
 
-    def MWMOTE(self, data, target):
+    def MWMOTE(self):
         """
-                            :data: The training set
-                            :target: The label of the training set
                             :return: The synthetic samples
                             :X_samp: The attribute of the synthetic samples
                             :y_samp: The labels of the synthetic samples
         """
-        self.data = data
-        self.target = target
         df = pd.DataFrame(self.data)
         df[len(df.columns)] = self.target
         oversampler = sv.MWMOTE(proportion=self.balance, k1=5, k2=3, k3=int(len(df[df[len(df.columns) - 1] == 1]) / 2), M=3, cf_th=5.0, cmax=2.0)
@@ -237,16 +211,12 @@ class Compared_smote():
         return X_samp, y_samp
 
 
-    def ADASYN(self, data, target):
+    def ADASYN(self):
         """
-                            :data: The training set
-                            :target: The label of the training set
                             :return: The synthetic samples
                             :X_samp: The attribute of the synthetic samples
                             :y_samp: The labels of the synthetic samples
         """
-        self.data = data
-        self.target = target
         df = pd.DataFrame(self.data)
         df[len(df.columns)] = self.target
         oversampler = sv.ADASYN(n_neighbors=5, d_th=0.75, beta=1.0, proportion=self.balance)
@@ -254,16 +224,13 @@ class Compared_smote():
         return X_samp, y_samp
 
 
-    def SMOTE_ENN(self, data, target):
+    def SMOTE_ENN(self):
         """
-                            :data: The training set
-                            :target: The label of the training set
+
                             :return: The synthetic samples
                             :X_samp: The attribute of the synthetic samples
                             :y_samp: The labels of the synthetic samples
         """
-        self.data = data
-        self.target = target
         df = pd.DataFrame(self.data)
         df[len(df.columns)] = self.target
         oversampler = sv.SMOTE_ENN(proportion=self.balance)
@@ -271,16 +238,12 @@ class Compared_smote():
         return X_samp, y_samp
 
 
-    def SMOTE_TL(self, data, target):
+    def SMOTE_TL(self):
         """
-                            :data: The training set
-                            :target: The label of the training set
                             :return: The synthetic samples
                             :X_samp: The attribute of the synthetic samples
                             :y_samp: The labels of the synthetic samples
         """
-        self.data = data
-        self.target = target
         df = pd.DataFrame(self.data)
         df[len(df.columns)] = self.target
         oversampler = sv.SMOTE_TomekLinks(proportion=self.balance)
@@ -288,32 +251,23 @@ class Compared_smote():
         return X_samp, y_samp
 
 
-    def SMOTE_IPF(self, data, target):
+    def SMOTE_IPF(self):
         """
-                            :data: The training set
-                            :target: The label of the training set
                             :return: The synthetic samples
                             :X_samp: The attribute of the synthetic samples
                             :y_samp: The labels of the synthetic samples
         """
-        self.data = data
-        self.target = target
         df = pd.DataFrame(self.data)
         df[len(df.columns)] = self.target
         oversampler = sv.SMOTE_IPF(n_neighbors=5, n_folds=9, k=3, p=0.01, voting='consensus', proportion=self.balance)
         X_samp, y_samp = oversampler.sample(np.array(df.iloc[:, 0:len(df.columns) - 1]), np.array(df[len(df.columns) - 1]))
         return X_samp, y_samp
 
-    def SMOTE_CSELM(self, data, target, test):
+    def SMOTE_CSELM(self, test):
         """
-                            :data: The training set
-                            :target: The label of the training set
                             :test: The testing set without labels
                             :return: The predict labels of the testing set
         """
-        self.data = data
-        self.target = target
-        self.test = test
         df = pd.DataFrame(self.data)
         df[len(df.columns)] = self.target
         x_x = df
@@ -328,21 +282,16 @@ class Compared_smote():
         syn = pd.cancat([z, p, syn])
         syn = syn.drop_duplicates(keep=False)
         cse = ce.ELM(z.iloc[:, :n - 1], z.iloc[:, :n - 1], syn.iloc[:, :n - 1], 100)
-        cse.classifisor_train(z[n - 1].append(p[n - 1]).append(syn[n - 1]))
+        cse.classifisor_train(z[n - 1].append(p[n - 1]).append(syn[n - 1])) #train classifier on balance dataset
         return cse.classifisor_test(test)
-        
-        
-    def WKSMOTE(self, data, target, test):
+
+
+    def WKSMOTE(self, test):
         """
-                            :data: The training set
-                            :target: The label of the training set
                             :test: The testing set without labels
                             :return: The predict labels of the testing set
         """
-        self.data = data
-        self.target = target
-        self.test = test
-        wk_smote = ws.WKSMOTE(data = self.data, target = self.target, test = self.test, balance=self.balance).train()
+        wk_smote = ws.WKSMOTE(data = self.data, target = self.target, test = test, balance=self.balance).train()
         return wk_smote.predict()
 
 
