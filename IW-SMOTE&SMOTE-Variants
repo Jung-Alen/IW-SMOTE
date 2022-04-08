@@ -122,7 +122,8 @@ class Compared_smote():
                 b = b[1:self.k_neighbor + 1] # choice knn
                 for j in range(int(nums)):
                     num_generate = num_generate + 1
-                    s_b = random.choice(b)
+                    #random choice a sample from KNN
+                    s_b = random.choice(b) 
                     select_ins = reserve_min.iloc[s_b[0], :]
                     new_ins = (reserve_min.iloc[i_4, :] - pd.DataFrame(select_ins).T) * random.random() + pd.DataFrame(
                         select_ins).T  # generate funtion
