@@ -330,6 +330,20 @@ class Compared_smote():
         cse = ce.ELM(z.iloc[:, :n - 1], z.iloc[:, :n - 1], syn.iloc[:, :n - 1], 100)
         cse.classifisor_train(z[n - 1].append(p[n - 1]).append(syn[n - 1]))
         return cse.classifisor_test(test)
+        
+        
+    def WKSMOTE(self, data, target, test):
+        """
+                            :data: The training set
+                            :target: The label of the training set
+                            :test: The testing set without labels
+                            :return: The predict labels of the testing set
+        """
+        self.data = data
+        self.target = target
+        self.test = test
+        wk_smote = ws.WKSMOTE(data = self.data, target = self.target, test = self.test, balance=self.balance).train()
+        return wk_smote.predict()
 
 
 
