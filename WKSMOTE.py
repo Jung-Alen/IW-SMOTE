@@ -18,7 +18,7 @@ def sign(x): # Convert the predicted value to -1, 1
         exit(-1)
 
 class WKSMOTE():
-    def __init__(self, data, target, test, C=1.0, epsilon=0.001, tolerance=0.001, balance=1):
+    def __init__(self, data, target, test, C=1.0, epsilon=0.001, tolerance=0.001, balance=1, k_neighbor=3):
         self.data = data  # train data
         self.target = target  # the label of train data
         self.test = test # the test data
@@ -26,6 +26,7 @@ class WKSMOTE():
         self.C = C  # punish parameter
         self.epsilon = epsilon  # slack
         self.tolerance = tolerance  # tolerance
+        self.k_neighbor = k_neighbor # knn
 
         self.X = np.array(data)
         self.Y = np.array(target)
@@ -48,8 +49,11 @@ class WKSMOTE():
         m2, n2 = len(p), len(p.columns) # m2: the number of minority samples; n2: the number of columns of the minority samples
         nums = self.balance * m2 - m1 #The number of minority samples that need to be synthesized
         for i in range(nums):
-            seed_index = random.randint(0, m1)
-            seed = z.iloc[seed_index,:] #random seed from minority samples
+            try:
+                seed_index = random.randint(0, m1)
+                seed = z.iloc[seed_index,:] #random seed from minority samples
+            except:
+                seed = random.choice(z)
             dis = [0] * m1
             for j in range(m1):
                 #The distance between these two instances, distance function
