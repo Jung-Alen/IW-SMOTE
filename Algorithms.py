@@ -36,7 +36,7 @@ class Compared_smote():
             :param gen_times: The ratio of generated minority class to majority class samples
             :return: The synthetic samples, attributes and labels
     """
-    def IW_SMOTE(self, lamda, thres, divide_times, gen_times, k_neighbor=5):
+    def IW_SMOTE(self, lamda=100, thres=0.5, divide_times=2, gen_times=1, k_neighbor=5):
         # x_x:Temporary variable, save the training set
         x_x = pd.DataFrame(self.data)
         x_x[len(x_x.columns)] = self.target
