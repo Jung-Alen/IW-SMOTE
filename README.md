@@ -8,7 +8,7 @@
 
 # Introduction
 
-*The project of  <<Instance Weighted SMOTE by Indirectly Exploring the Data Distribution >>*
+*The project of  <Instance Weighted SMOTE by Indirectly Exploring the Data Distribution >*
 
 ## 1. The main algorithm
 
