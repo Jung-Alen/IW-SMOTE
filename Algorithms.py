@@ -275,8 +275,8 @@ class Compared_smote():
         syn[len(syn.columns)] = y_samp
         syn = pd.concat([z, p, syn])
         syn = syn.drop_duplicates(keep=False)
-        cse = ce.CSELM(z.iloc[:, :n - 1], z.iloc[:, :n - 1], syn.iloc[:, :n - 1], 100)
-        cse.classifisor_train(z[n - 1].append(p[n - 1]).append(syn[n - 1])) #train classifier on balance dataset
+        cse = ce.CSELM(z.iloc[:, :n - 1], p.iloc[:, :n - 1], syn.iloc[:, :n - 1], 100)
+        cse.classifisor_train(z[n - 1],p[n - 1],syn[n - 1]) #train classifier on balance dataset
         return cse.classifisor_test(test)
 
 
