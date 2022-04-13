@@ -71,7 +71,8 @@ class CSELM:
 
         self.Nmin = len(xmin) # the number of minority samples
         self.Nmaj = len(xmaj) # the number of majority samples
-        self.N = len(xmin) + len(xmaj) # the number of Synthetic samples
+        self.Nsyn = len(xsyn) # the number of balanced dataset
+        self.N = len(xmin) + len(xmaj) + len(xsyn) # the number of Synthetic samples
 
 
         # w: the weight of all samples
@@ -82,6 +83,7 @@ class CSELM:
             rand_b = rnd.uniform(-0.4, 0.4)
             for j in range(self.N):
                 self.b[j, i] = rand_b
+        self.h = self.sigmoid(np.dot(xmin.append(xmaj).append(xsyn), self.w) + self.b)
 
     @staticmethod
     def sigmoid(x):
@@ -94,12 +96,13 @@ class CSELM:
 
 
     # train
-    def classifisor_train(self, T):
+    def classifisor_train(self, lmin, lmaj, lsyn):
         """
             After initializing the learning machine, you need to pass in the corresponding tag T
-            :param T: labels T corresponding to train data X
+            :param lmin,lmaj,lsyn: labels of the minority samples, majority samples, the synthetic samples
             :return: Hidden layer output weight beta
         """
+        T = lmin.append(lmaj).append(lsyn)
         Cmaj = ((self.N - self.Nmaj) * self.C )/ self.N
         Cmin = ((self.N - self.Nmin) * self.C) / self.N
         Csyn = ((self.N - self.Nmin - self.Nmaj) * self.C) / self.N
@@ -111,14 +114,19 @@ class CSELM:
             T = self.en_one.fit_transform(T.reshape(-1, 1)).toarray()
             pass
         try:
-            all_m = (1/Cmaj + 1/Cmin +1/Csyn + (1 + Cmaj/Cmin + Cmaj/Csyn)*np.dot(self.H0maj.T, self.H0maj) + (1 + Cmin/Cmaj + Cmin/Csyn)*np.dot(self.H0min.T, self.H0min) + (1 + Csyn/Cmaj + Csyn/Cmin)*np.dot(self.H0syn.T, self.H0syn))
+            print(lmaj.shape, lmin.shape, lsyn.shape)
+            print(self.H0maj.T.shape, self.H0min.T.shape, self.H0syn.T.shape)
+            all_m1 = (1/Cmaj + 1/Cmin +1/Csyn + (1 + Cmaj/Cmin + Cmaj/Csyn)*np.dot(self.H0maj.T, self.H0maj) + (1 + Cmin/Cmaj + Cmin/Csyn)*np.dot(self.H0min.T, self.H0min) + (1 + Csyn/Cmaj + Csyn/Cmin)*np.dot(self.H0syn.T, self.H0syn))
+            all_m2 = (1/Cmaj + 1/Cmin +1/Csyn + (1 + Cmaj/Cmin + Cmaj/Csyn)*np.dot(self.H0maj.T, np.array(lmaj)) + (1 + Cmin/Cmaj + Cmin/Csyn)*np.dot(self.H0min.T, np.array(lmin)) + (1 + Csyn/Cmaj + Csyn/Cmin)*np.dot(self.H0syn.T, np.array(lsyn)))
         except:
-            all_m = np.dot(self.H0maj.T,self.H0maj) +  np.dot(self.H0min.T, self.H0min) + (np.dot(self.H0syn.T, self.H0syn))
-        all_m = np.dot(all_m.T, all_m)
+            # sub_former = np.dot(np.transpose(self.h), self.h) + len(T) / self.C
+            # all_m = np.dot(np.linalg.pinv(sub_former), np.transpose(self.h))
+            all_m1 = np.dot(self.H0maj.T, self.H0maj) +  np.dot(self.H0min.T, self.H0min) + (np.dot(self.H0syn.T, self.H0syn))
+            all_m2 = np.dot(self.H0maj.T, np.array(lmaj)) + np.dot(self.H0min.T, np.array(lmin)) + (np.dot(self.H0syn.T, np.array(lsyn)))
         try:
-            self.beta = np.dot(all_m, T)
+            self.beta = np.dot(all_m1.I, all_m2)
         except:
-            self.beta = np.dot(all_m[:,:T.shape[0]], T)
+            self.beta = np.dot(all_m1.I, all_m1)
         return self.beta
 
     # test
@@ -132,13 +140,14 @@ class CSELM:
         try:
             h = self.sigmoid(np.dot(test_x, self.w)+ self.b[:b_row, :])
         except:
-            b = np.zeros([test_x.shape[0], self.w.shape[1]], dtype=float)
+            b = np.zeros([test_x.shape[0], self.w.shape[1]], dtype=float) #bias b
             for i in range(test_x.shape[0]):
                 rand_b = np.random.RandomState().uniform(-0.4, 0.4)
                 for j in range(self.w.shape[1]):
                     b[i, j] = rand_b
             h = self.sigmoid(np.dot(test_x, self.w) + b)
         result = np.dot(h, self.beta)
-        result = np.argmax(result, axis=1)
-        result[result==0] = -1
-        return result
+        result = self.sigmoid(np.argmax(result, axis=1))
+        # result[result==0] = -1
+        return np.array(result.astype(int))
+    
