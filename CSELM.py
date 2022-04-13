@@ -148,6 +148,6 @@ class CSELM:
             h = self.sigmoid(np.dot(test_x, self.w) + b)
         result = np.dot(h, self.beta)
         result = self.sigmoid(np.argmax(result, axis=1))
-        # result[result==0] = -1
-        return np.array(result.astype(int))
-    
+        result = result.astype(int)
+        result[result==0] = -1
+        return np.array(result)
